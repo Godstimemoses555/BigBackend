@@ -9,3 +9,4 @@ pydantic[email]
 pydantic
 email-validator
 requests
+passlib
