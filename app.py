@@ -17,9 +17,43 @@ from utility import (
 )
 from model import Login, User, CreateSecretPin, Message
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from contextlib import asynccontextmanager
+
+def every_5_mins_job():
+    print(f"[{datetime.utcnow().isoformat()}] Running 5-minute background job...")
+    # Add your 5 minute periodic task logic here
+    pass
+
+def daily_job():
+    print(f"[{datetime.utcnow().isoformat()}] Running daily background job...")
+    # Add your daily periodic task logic here (runs at midnight)
+    pass
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize the scheduler
+    scheduler = BackgroundScheduler()
+    
+    # Schedule job every 5 minutes
+    scheduler.add_job(every_5_mins_job, 'interval', minutes=5)
+    
+    # Schedule daily job at midnight (00:00)
+    scheduler.add_job(daily_job, 'cron', hour=0, minute=0)
+    
+    # Start the scheduler
+    scheduler.start()
+    print("Background scheduler started.")
+    
+    yield  # Application runs here
+    
+    # Shutdown the scheduler when the app stops
+    scheduler.shutdown()
+    print("Background scheduler shutdown.")
+
 load_dotenv()
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # -------------------- CORS --------------------
 app.add_middleware(
